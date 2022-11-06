@@ -22,7 +22,14 @@ showTree (Fix (NodeF n ns)) =
   where
     spaceLength = length (show n) + 1
     formatSubtree :: [String] -> String
-    formatSubtree = intercalate "\n" . map (unlines . map ((replicate spaceLength ' ' ++ "| ") ++) . lines)
+    formatSubtree = concatMap (unlines . prefixLines . lines)
+
+    prefixLines :: [String] -> [String]
+    prefixLines [] = []
+    prefixLines (a:rest) = prefixWith "` " a : map (prefixWith "| ") rest
+
+    prefixWith :: String -> String -> String
+    prefixWith s = ((replicate spaceLength ' ' ++ s) ++)
 
 showTreeF :: Show a => TreeF a String -> String
 showTreeF (NodeF n subtrees) =
@@ -30,47 +37,38 @@ showTreeF (NodeF n subtrees) =
   where
     spaceLength = length (show n) + 1
     formatSubtree :: [String] -> String
-    formatSubtree = intercalate "\n" . map (unlines . map ((replicate spaceLength ' ' ++ "| ") ++) . lines)
+    formatSubtree = concatMap (unlines . prefixLines . lines)
+
+    prefixLines :: [String] -> [String]
+    prefixLines [] = []
+    prefixLines (a:rest) = prefixWith "` " a : map (prefixWith "| ") rest
+
+    prefixWith :: String -> String -> String
+    prefixWith s = ((replicate spaceLength ' ' ++ s) ++)
 
 main :: IO ()
 main = do
+  putStr (cata showTreeF (split 16))
   print (showTree (split 16) == cata showTreeF (split 16))
-  putStrLn (cata showTreeF (split 16))
   print (halves 256)
 
 {-
+16 ` 8 ` 4 ` 2 ` 1
+   |   |   |   ` 1
+   |   |   ` 2 ` 1
+   |   |   |   ` 1
+   |   ` 4 ` 2 ` 1
+   |   |   |   ` 1
+   |   |   ` 2 ` 1
+   |   |   |   ` 1
+   ` 8 ` 4 ` 2 ` 1
+   |   |   |   ` 1
+   |   |   ` 2 ` 1
+   |   |   |   ` 1
+   |   ` 4 ` 2 ` 1
+   |   |   |   ` 1
+   |   |   ` 2 ` 1
+   |   |   |   ` 1
 True
-16 | 8 | 4 | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |   |
-   |   |   | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |
-   |   | 4 | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |   |
-   |   |   | 2 | 1
-   |   |   |
-   |   |   |   | 1
-
-   | 8 | 4 | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |   |
-   |   |   | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |
-   |   | 4 | 2 | 1
-   |   |   |
-   |   |   |   | 1
-   |   |
-   |   |   | 2 | 1
-   |   |   |
-   |   |   |   | 1
-
 [256,128,64,32,16,8,4,2,1]
 -}
