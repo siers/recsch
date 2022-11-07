@@ -1,9 +1,9 @@
 module Main where
 
-import Data.List ( intercalate )
+import Data.List ( intercalate, nub )
 import Data.Fix (Fix(..))
 import Data.Functor.Base ( ListF(Cons, Nil), TreeF(..) )
-import Data.Functor.Foldable ( Corecursive(ana), cata )
+import Data.Functor.Foldable ( Corecursive(ana), hylo, cata )
 
 halves :: Int -> [Int]
 halves = ana (\n -> if n == 0 then Nil else Cons n (div n 2))
@@ -11,10 +11,10 @@ halves = ana (\n -> if n == 0 then Nil else Cons n (div n 2))
 type Tree a = Fix (TreeF a)
 
 split :: Int -> Tree Int
-split = ana go
-  where
-    go :: Int -> TreeF Int Int
-    go n = NodeF n (if n > 1 then [div n 2, div n 2] else [])
+split = ana splitF
+
+splitF :: Int -> TreeF Int Int
+splitF n = NodeF n (if n > 1 then [div n 2, div n 2] else [])
 
 showTree :: Show a => Tree a -> String
 showTree (Fix (NodeF n ns)) =
@@ -46,10 +46,17 @@ showTreeF (NodeF n subtrees) =
     prefixWith :: String -> String -> String
     prefixWith s = ((replicate spaceLength ' ' ++ s) ++)
 
+waysToFold :: [String]
+waysToFold =
+  [ showTree (split 16)
+  , hylo showTreeF splitF 16
+  , cata showTreeF (split 16)
+  ]
+
 main :: IO ()
 main = do
-  putStr (cata showTreeF (split 16))
-  print (showTree (split 16) == cata showTreeF (split 16))
+  putStr (hylo showTreeF splitF 16)
+  print (length (nub waysToFold) == 1)
   print (halves 256)
 
 {-
