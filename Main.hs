@@ -46,17 +46,17 @@ showTreeF (NodeF n subtrees) =
     prefixWith :: String -> String -> String
     prefixWith s = ((replicate spaceLength ' ' ++ s) ++)
 
-waysToFold :: [String]
+waysToFold :: [Int -> String]
 waysToFold =
-  [ showTree (split 16)
-  , hylo showTreeF splitF 16
-  , cata showTreeF (split 16)
+  [ showTree . split
+  , hylo showTreeF splitF
+  , cata showTreeF . split
   ]
 
 main :: IO ()
 main = do
   putStr (hylo showTreeF splitF 16)
-  print (length (nub waysToFold) == 1)
+  print (length (nub (map ($ 16) waysToFold)) == 1)
   print (halves 256)
 
 {-
